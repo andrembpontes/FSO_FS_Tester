@@ -69,7 +69,7 @@ public class FileSystemClass implements FileSystem {
 			String name = lines.get(actualI++).split(" ")[1];
 			name = name.substring(1, name.length() - 2);
 			
-			int size = Integer.parseInt(lines.get(actualI++).split(" ")[1].substring(1));
+			int size = Integer.parseInt(lines.get(actualI++).split(" ")[1]);
 			
 			List<Integer> blocks = new LinkedList<Integer>();
 			String[] blockSplit = lines.get(actualI++).split(" ");
