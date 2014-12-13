@@ -234,12 +234,18 @@ public class FileSystemClass implements FileSystem {
 	}
 
 	@Override
-	public void exit() {
+	public void kill() {
 		try {
 			this.linker.terminate();
 		} catch (IOException e) {
 			e.printStackTrace();
 			throw new RuntimeException();
 		}
+	}
+	
+	@Override
+	public boolean exit(){
+		linker.writeCommand(Command.EXIT);
+		return !linker.isRunning();
 	}
 }

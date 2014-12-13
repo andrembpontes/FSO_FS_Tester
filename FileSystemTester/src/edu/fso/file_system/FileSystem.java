@@ -12,5 +12,6 @@ public interface FileSystem {
 	int getSize(String fileName);
 	boolean copyIn(String destination, File file);
 	boolean copyOut(String source, File file);
-	void exit();
+	boolean exit();
+	void kill();
 }

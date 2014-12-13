@@ -46,7 +46,9 @@ public class Linker {
 			this.fsIn = null;
 			this.streamsInit = false;
 			
-			this.process.destroy();
+			if(this.process.isAlive())
+				this.process.destroy();
+			
 			this.process = null;
 		}
 	}
