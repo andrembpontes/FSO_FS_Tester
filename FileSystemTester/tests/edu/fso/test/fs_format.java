@@ -227,7 +227,7 @@ public class fs_format {
 	public void g_dir_stress_test(){
 		saveDiskMod = false;
 		
-		Linker.READ_ATTEMPTS = 5;
+		Linker.READ_ATTEMPTS = 2;
 		Linker.DELAY_MS = 1;
 		
 		Random rand = new Random();
