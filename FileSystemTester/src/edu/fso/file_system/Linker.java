@@ -13,8 +13,8 @@ import java.util.Scanner;
 
 public class Linker {
 
-	public static final int TIMES_WAIT = 3;
-	public static final int WAINTING_TIME_MS = 100;
+	public static int READ_ATTEMPTS = 10;
+	public static int DELAY_MS = 10;
 	
 	File fsShell;
 	Process process;
@@ -82,10 +82,10 @@ public class Linker {
 		this.writeCommand(command.format());
 	}
 	
-	List<String> getOutput(){
+	List<String> getOutput(int attempts, int delay){
 		List<String> lines = new LinkedList<String>();
 		try{
-			while(hasNextOutputLine()){
+			while(hasNextOutputLine(attempts, delay)){
 				//this.fsIn.println();
 				String line = this.fsOut.readLine();
 				
@@ -103,12 +103,16 @@ public class Linker {
 		}
 	}
 	
-	private boolean hasNextOutputLine() throws IOException {
+	List<String> getOutput(){
+		return this.getOutput(READ_ATTEMPTS, DELAY_MS);
+	}
+	
+	private boolean hasNextOutputLine(int attempts, int delay) throws IOException {
 		boolean hasNextLine = this.fsOut.ready();
 		
-		for(int i = 0; i < TIMES_WAIT && !hasNextLine; i++, hasNextLine = this.fsOut.ready()){
+		for(int i = 0; i < attempts && !hasNextLine; i++, hasNextLine = this.fsOut.ready()){
 			try {
-				Thread.sleep(WAINTING_TIME_MS);
+				Thread.sleep(delay);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

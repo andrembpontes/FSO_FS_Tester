@@ -8,20 +8,21 @@ public enum DefaultMessages {
 	FS_FORMAT_SUCCEED("disk formatted."),
 	
 	CREATE_FILE_FAIL("create failed!"),
-	CREATE_FILE_SUCCEED("created file %s"),
+	CREATE_FILE_SUCCEED("created file %s", 1),
 	
 	DELETE_FILE_FAIL("delete failed!"),
-	DELETE_FILE_SUCCEED("file %s deleted."),
+	DELETE_FILE_SUCCEED("file %s deleted.", 1),
 	
 	GET_FILE_SIZE_FAIL("getsize failed!"),
-	GET_FILE_SIZE_SUCCEED("file %s has size %s"),
+	GET_FILE_SIZE_SUCCEED("file %s has size %s", 2),
 	
-	FILE_IMPORT_SUCCEED("copied file %s to  %s"),
+	FILE_IMPORT_SUCCEED("copied file %s to  %s", 2),
 	
-	FILE_EXPORT_SUCCEED("copied file %s to %s"),
+	FILE_EXPORT_SUCCEED("copied myfs_file %s to file %s", 2),
 	
 	NO_BYTES_TRANSFERED("0 bytes copied"),
-	BYTES_TRANSFERED("%s bytes copied"),
+	BYTES_TRANSFERED("%s bytes copied", 1),
+	RANDOM_BYTES_TRANSFERED(" bytes copied"),
 	
 	VALID_MAGIC_NUMBER("magic number is valid"),
 	

@@ -6,6 +6,8 @@ import java.io.PrintStream;
 import java.util.LinkedList;
 import java.util.List;
 
+import edu.fso.test.fs_format;
+
 public class FileSystemClass implements FileSystem {
 
 	Linker linker;
@@ -56,7 +58,7 @@ public class FileSystemClass implements FileSystem {
 		if((lines.size() - 4) % 3 != 0) //defined format
 			throw new InvalidOutputException();
 		
-		boolean validMagicNumber = DefaultMessages.VALID_MAGIC_NUMBER.equals(lines.get(1));
+		boolean validMagicNumber = DefaultMessages.VALID_MAGIC_NUMBER.equals(lines.get(1).substring(1));
 		int diskBlocks = Integer.parseInt(lines.get(2).split(" ")[0].substring(1));
 		int fatBlocks = Integer.parseInt(lines.get(3).split(" ")[0].substring(1));
 		
@@ -161,7 +163,11 @@ public class FileSystemClass implements FileSystem {
 		this.linker.writeCommand(Command.IMPORT_FILE.format(importedFileName, destination));
 		List<String> lines = this.linker.getOutput();
 		
+		int fileLen = (int) file.length();
+		
 		int succeed = 0;
+		boolean invalidSize = false;
+		
 		for(String line : lines){
 			if(DefaultMessages.FILE_IMPORT_SUCCEED.msg(importedFileName, destination).equals(line))
 				succeed++;
@@ -169,12 +175,22 @@ public class FileSystemClass implements FileSystem {
 			if(DefaultMessages.BYTES_TRANSFERED.msg(Long.toString(file.length())).equals(line))
 				succeed++;
 			
-			if(DefaultMessages.NO_BYTES_TRANSFERED.equals(line))
-				return false;
+			if(DefaultMessages.NO_BYTES_TRANSFERED.equals(line)){
+				if(fileLen == 0)
+					succeed++;
+				else
+					return false;
+			}
+			
+			if(line.contains(DefaultMessages.RANDOM_BYTES_TRANSFERED.msg()))
+				invalidSize = true;
 			
 			if(succeed == 2)
 				return true;
 		}
+		
+		if(invalidSize)
+			return false;
 		
 		throw new InvalidOutputException();
 	}
@@ -183,8 +199,17 @@ public class FileSystemClass implements FileSystem {
 	public boolean copyOut(String source, File file) {
 		String exportedFileName = file.getAbsolutePath();
 		
-		this.linker.writeCommand(Command.IMPORT_FILE.format(source, exportedFileName));
+		this.linker.writeCommand(Command.EXPORT_FILE.format(source, exportedFileName));
 		List<String> lines = this.linker.getOutput();
+		
+		int fileLen = 0;
+		
+		for(FileData fileData : this.debug().files){
+			if(fileData.name.equals(source)){
+				fileLen = fileData.size;
+				break;
+			}
+		}
 		
 		int succeed = 0;
 		for(String line : lines){
@@ -194,13 +219,27 @@ public class FileSystemClass implements FileSystem {
 			if(DefaultMessages.BYTES_TRANSFERED.msg(Long.toString(file.length())).equals(line))
 				succeed++;
 			
-			if(DefaultMessages.NO_BYTES_TRANSFERED.equals(line))
-				return false;
+			if(DefaultMessages.NO_BYTES_TRANSFERED.equals(line)){
+				if(fileLen == 0)
+					succeed++;
+				else
+					return false;
+			}
 			
 			if(succeed == 2)
 				return true;
 		}
 		
 		throw new InvalidOutputException();
+	}
+
+	@Override
+	public void exit() {
+		try {
+			this.linker.terminate();
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new RuntimeException();
+		}
 	}
 }

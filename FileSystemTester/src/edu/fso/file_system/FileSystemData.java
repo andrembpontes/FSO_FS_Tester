@@ -11,4 +11,17 @@ public class FileSystemData {
 		this.files = files;
 	}
 	
+	public int freeBlocks(){
+		int freeDiskBlocks = this.superBlock.diskBlocks;
+		
+		freeDiskBlocks -= 2; //super and dir block
+		freeDiskBlocks -= this.superBlock.fatBlocks;
+		
+		for(FileData fileData : files){
+			freeDiskBlocks -= fileData.blocks.size();
+		}
+		
+		return freeDiskBlocks;
+	}
+	
 }
