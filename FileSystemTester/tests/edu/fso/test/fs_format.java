@@ -3,6 +3,7 @@ import static org.junit.Assert.*;
 
 import org.junit.runners.MethodSorters;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.io.File;
 import java.io.FileInputStream;
@@ -20,6 +21,8 @@ import org.junit.FixMethodOrder;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import edu.fso.file_system.DirData;
+import edu.fso.file_system.FATData;
 import edu.fso.file_system.FileData;
 import edu.fso.file_system.FileSystem;
 import edu.fso.file_system.FileSystemData;
@@ -34,7 +37,7 @@ public class fs_format {
 	public static final String FILE_QUEUE = "fs_format/file_queue";
 	public static final String FILE_OUTS = "filesOut/"; 
 	
-	public static final int STRESS_TESTS_MAX_MS = 360000;
+	public static final int STRESS_TESTS_MAX_MS = 6000;
 	
 	public static final int READ_ATTEMPTS = 3;
 	public static final int DELAY_BETWEEN_MS = 10;
@@ -175,7 +178,58 @@ public class fs_format {
 			assertTrue("Cant format disk " + actualDisk.disk.getName(), fs.format());
 		}
 		
+		verifyIntegrityFS();
+		
 		statsPrintln("Can format all disks once. Check!");
+	}
+	
+	private void verifyIntegrityFS(){
+		verifyIntegrityFS(new LinkedList<FileData>(), false);
+	}
+	
+	private void verifyIntegrityFS(List<FileData> expectedFiles, boolean exclusive){
+		FileSystemData fsData = fs.debug();
+
+		List<FileData> files = fsData.files;
+		
+		if(expectedFiles != null){
+			for(FileData file : expectedFiles)
+				assert(files.contains(file));
+			
+			if(exclusive)
+				for(FileData file : files)
+					assert(expectedFiles.contains(file));
+		}
+		
+		FATData fatData = fs.getFAT();
+		DirData dirData = fs.getDir();
+		
+		assertEquals(files.size(), dirData.filesN());
+		
+		List<Integer> blocksReferenced = new LinkedList<Integer>();
+		
+		for(int i = 0; i < fsData.superBlock.fatBlocks + 2; i++)
+			assert(fatData.getFATEntry(i) == fatData.BUSY);
+		
+		for(FileData file : files){
+			for(int block : file.blocks){
+				assert(fatData.getFATEntry(block) != fatData.FREE);
+				assert(!blocksReferenced.contains(block));
+				blocksReferenced.add(block);
+			}
+			
+			assert(file.blocks.get(file.blocks.size() - 1) == fatData.EOFF);
+		}
+		
+		for(int i = fsData.superBlock.fatBlocks + 1; i < Konstants.ADD_PER_BLOCK * fsData.superBlock.fatBlocks; i++){
+			if(blocksReferenced.contains(i)){
+				assert(fatData.getFATEntry(i) != fatData.FREE);
+			}
+			else {
+				assert(fatData.getFATEntry(i) == fatData.FREE);
+			}
+		}
+		
 	}
 	
 	/**
@@ -226,8 +280,6 @@ public class fs_format {
 	
 	@Test 
 	public void g_dir_stress_test(){
-		saveDiskMod = false;
-		
 		Linker.READ_ATTEMPTS = 2;
 		Linker.DELAY_MS = 1;
 		
@@ -248,7 +300,6 @@ public class fs_format {
 			
 			if(fsData != null){	
 				fs.mount();
-				
 				debugPrintln("Starting directory stress test at " + actualDisk.disk.getName());
 				
 				int currentFileN = fsData.files.size();
@@ -294,6 +345,9 @@ public class fs_format {
 				assert(newFile.length() <= Konstants.MAX_NAME_LEN);
 				
 				assertFalse("File created with full dir", fs.create(newFile));
+				
+				
+				verifyIntegrityFS();
 				
 				debugPrintln("Completed directory stress test at " + actualDisk.disk.getName());
 				
@@ -367,7 +421,9 @@ public class fs_format {
 			}
 			
 			assertEquals("Not correct free blocks after copy", freeBlocks - blocksCopied, fs.debug().freeBlocks());
+			verifyIntegrityFS();
 		}
+		
 		statsPrintln("done!");
 		statsPrintln("");
 	}
@@ -383,6 +439,8 @@ public class fs_format {
 			}
 			
 			assertEquals("Non all files deleted at " + actualDisk.disk.getName(), 0, fs.debug().files.size());
+			
+			verifyIntegrityFS(new LinkedList<FileData>(), true);
 		}
 	}
 	

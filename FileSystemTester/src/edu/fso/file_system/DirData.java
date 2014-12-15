@@ -8,11 +8,11 @@ public class DirData {
 	byte[] dir;
 	DirEntry[] dirArr;
 	
-	class DirEntry{
-		boolean valid;
-		String name;
-		int size;
-		int firstBlock;
+	public class DirEntry{
+		public boolean valid;
+		public String name;
+		public int size;
+		public int firstBlock;
 	}
 	
 	public DirData(byte[] dir, int filesN){
@@ -44,5 +44,9 @@ public class DirData {
 	
 	public DirEntry getEntry(int entry){
 		return dirArr[entry];
+	}
+	
+	public int filesN(){
+		return this.dirArr.length;
 	}
 }

@@ -269,7 +269,7 @@ public class FileSystemClass implements FileSystem {
 
 	@Override
 	public byte[] dump(int block) {
-		this.linker.writeCommand(Command.DUMP_BLOCK);
+		this.linker.writeCommand(Command.DUMP_BLOCK.format(Integer.toString(block)));
 		List<String> lines = this.linker.getOutput();
 		
 		boolean dumpResult = false;
@@ -284,15 +284,15 @@ public class FileSystemClass implements FileSystem {
 					for(char b : charBuff)
 						blockDump[blockDumpCounter++] = (byte) b;
 				}
+				else{
+					return blockDump;
+				}
 			}
 			else{
 				dumpResult = line.equals("------------------------------");
 			}
 		}
 		
-		if(lines.size() > 1)
-			throw new InvalidOutputException();
-		
-		return blockDump;
+		throw new InvalidOutputException();
 	}
 }

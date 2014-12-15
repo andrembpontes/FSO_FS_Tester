@@ -17,7 +17,7 @@ public class FATData {
 		return (int) Math.ceil((double) entry / Konstants.ADD_PER_BLOCK);
 	}
 	
-	int getFATEntry(int entry){
+	public int getFATEntry(int entry){
 		return fatBlocks[getFATEntryBlock(entry)][entry];
 	}
 }
