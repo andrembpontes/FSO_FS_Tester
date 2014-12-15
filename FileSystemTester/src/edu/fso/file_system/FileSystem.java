@@ -13,5 +13,8 @@ public interface FileSystem {
 	boolean copyIn(String destination, File file);
 	boolean copyOut(String source, File file);
 	boolean exit();
+	FATData getFAT();
+	DirData getDir();
+	byte[] dump(int block);
 	void kill();
 }

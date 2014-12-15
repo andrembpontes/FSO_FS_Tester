@@ -3,6 +3,7 @@ package edu.fso.file_system;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.nio.ByteBuffer;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -247,5 +248,51 @@ public class FileSystemClass implements FileSystem {
 	public boolean exit(){
 		linker.writeCommand(Command.EXIT);
 		return !linker.isRunning();
+	}
+
+	@Override
+	public FATData getFAT() {
+		int fatBlocks = this.debug().superBlock.fatBlocks;
+		byte[][] FAT = new byte[fatBlocks][];
+		
+		for(int i = 0; i < fatBlocks; i++){
+			FAT[i] = this.dump(Konstants.FIRST_FAT_BLOCK + i);
+		}
+		
+		return new FATData(FAT);
+	}
+
+	@Override
+	public DirData getDir() {
+		return new DirData(this.dump(Konstants.DIR_BLOCK), this.debug().files.size());
+	}
+
+	@Override
+	public byte[] dump(int block) {
+		this.linker.writeCommand(Command.DUMP_BLOCK);
+		List<String> lines = this.linker.getOutput();
+		
+		boolean dumpResult = false;
+		byte[] blockDump = new byte[Konstants.BLOCK_SIZE];
+		int blockDumpCounter = 0;
+		char[] charBuff;
+		for(String line : lines){
+			if(dumpResult){
+				dumpResult = !line.equals("------------------------------");
+				if(dumpResult){
+					charBuff = line.toCharArray();
+					for(char b : charBuff)
+						blockDump[blockDumpCounter++] = (byte) b;
+				}
+			}
+			else{
+				dumpResult = line.equals("------------------------------");
+			}
+		}
+		
+		if(lines.size() > 1)
+			throw new InvalidOutputException();
+		
+		return blockDump;
 	}
 }
